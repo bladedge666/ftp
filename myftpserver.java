@@ -4,11 +4,9 @@ import java.net.Socket;
 import java.util.Scanner;;
 
 /**
- * This is the FTP server for the project.
- * The main method works as the driver and
- * calls the start method which boots up the 
- * server and allows it to serve requests from 
- * the client.
+ * This is the FTP server for the project. The main method works as the driver
+ * and calls the start method which boots up the server and allows it to serve
+ * requests from the client.
  */
 public class myftpserver {
 
@@ -31,18 +29,22 @@ public class myftpserver {
     ftpServer.start(port);
 
     ftpServer.closeResources();
-   
+
   } // end main
 
-    /**
-   * This method is responsible for all the actions performed by the 
-   * server.
+  /**
+   * This method is responsible for all the actions performed by the server.
+   * 
    * @param port
    * @throws IOException
    */
   public void start(int port) throws IOException {
     ss = new ServerSocket(port);
 
+    File currentDir;
+
+    // The infinite loop for the server so that it
+    // doesn't close even when the client quits
     while (true) {
       client = ss.accept();
       System.out.println("Connection estblished!");
@@ -56,7 +58,7 @@ public class myftpserver {
       String command[] = null;
       System.out.println("Waiting for a command...");
       do {
-        
+
         String response = input.readUTF();
         command = response.split("\\s+");
         switch (command[0]) {
@@ -96,31 +98,43 @@ public class myftpserver {
           objOutput.writeObject(curDir.list());
           break;
 
+        // For windows system
         case "cd..":
-          File currentDir = new File(System.getProperty("user.dir"));
+          currentDir = new File(System.getProperty("user.dir"));
           System.setProperty("user.dir", currentDir.getAbsoluteFile().getParent());
           output.writeUTF("Directory changed to " + System.getProperty("user.dir"));
           break;
 
         case "cd":
           if (command[1].equals("..")) {
-            File CurrentDir = new File(System.getProperty("user.dir"));
-            File parentDir = new File(System.getProperty("user.dir", CurrentDir.getAbsoluteFile().getParent()));
+
+            currentDir = new File(System.getProperty("user.dir"));
+            File parentDir = new File(System.getProperty("user.dir", currentDir.getAbsoluteFile().getParent()));
+            System.out.println("Parent dir: ->>>>>" + parentDir);
             if (parentDir.exists()) {
-              System.setProperty("user.dir", CurrentDir.getAbsoluteFile().getParent());
+              System.setProperty("user.dir", currentDir.getAbsoluteFile().getParent());
               output.writeUTF("Directory changed to " + System.getProperty("user.dir"));
-            } else {
+            }
+            else {
               output.writeUTF("No parent directory exists!");
             }
-          } else {
-            File changeDir = new File(System.getProperty("user.dir") + "\\" + command[1]);
+
+          } // end if checking ".." 
+
+          // when the second param is anything other than ".."
+          else {
+            File changeDir = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
+
             if (changeDir.exists()) {
               System.setProperty("user.dir", changeDir.getAbsoluteFile().getPath());
               output.writeUTF("Directory changed to " + System.getProperty("user.dir"));
-            } else {
+            }
+
+            else {
               output.writeUTF("No such directory exists!");
             }
           }
+
           break;
 
         case "mkdir":
@@ -147,9 +161,7 @@ public class myftpserver {
 
     } // end infinite loop
 
-
   }
-
 
   public void closeResources() throws IOException {
     ss.close();
