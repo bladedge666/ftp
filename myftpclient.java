@@ -33,6 +33,7 @@ public class myftpclient {
       
       System.out.print("myftp> ");
       String command = scan.nextLine();
+      int cmdLength = command.split(" ").length;
       output.writeUTF(command);
 
       if (command.equals("ls")) {
@@ -49,7 +50,7 @@ public class myftpclient {
         quit = true;
       }
 
-      else if (command.startsWith("get")) {
+      else if (cmdLength == 2 && command.startsWith("get")) {
         byte[] getByteArray = new byte[BUFFER_SIZE];
         String getFile = command.substring(4);
         System.out.println(getFile);
@@ -58,7 +59,7 @@ public class myftpclient {
         fileOutStream.write(getByteArray, 0, getByteArray.length);
       }
 
-      else if (command.startsWith("put")) {
+      else if (cmdLength == 2 && command.startsWith("put")) {
         File sendFile = new File(command.substring(4));
         fileInStream = new FileInputStream(sendFile.getAbsolutePath());
         // System.out.println(sendFile.length());

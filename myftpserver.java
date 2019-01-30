@@ -64,22 +64,34 @@ public class myftpserver {
         switch (command[0]) {
 
         case "get":
+          if (command.length == 2) {
+            File sendFile = new File(command[1]);
 
-          File sendFile = new File(command[1]);
+            fileInStream = new FileInputStream(sendFile.getAbsolutePath());
+            byte[] getByteArray = new byte[(int) sendFile.length()];
 
-          fileInStream = new FileInputStream(sendFile.getAbsolutePath());
-          byte[] getByteArray = new byte[(int) sendFile.length()];
+            fileInStream.read(getByteArray, 0, getByteArray.length);
+            outStream.write(getByteArray, 0, getByteArray.length);
+          }
 
-          fileInStream.read(getByteArray, 0, getByteArray.length);
-          outStream.write(getByteArray, 0, getByteArray.length);
+          // If no file is specified as the argument
+          else {
+            output.writeUTF("You must specify a path after a get command.");
+          }
+
           break;
 
         case "put":
-
-          byte[] putByteArray = new byte[BUFFER_SIZE];
-          fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + command[1]);
-          inStream.read(putByteArray, 0, putByteArray.length);
-          fileOutStream.write(putByteArray, 0, putByteArray.length);
+          if (command.length == 2) {
+            byte[] putByteArray = new byte[BUFFER_SIZE];
+            fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + command[1]);
+            inStream.read(putByteArray, 0, putByteArray.length);
+            fileOutStream.write(putByteArray, 0, putByteArray.length);
+          }
+          
+          else {
+            output.writeUTF("You must specify a path after a get command.");
+          }
           break;
 
         case "delete":
@@ -106,12 +118,11 @@ public class myftpserver {
           break;
 
         case "cd":
-          
+
           if (command.length <= 1) {
             output.writeUTF("You must specify a path after a cd command.");
             break;
           }
-          
 
           if (command[1].equals("..")) {
 
@@ -121,16 +132,12 @@ public class myftpserver {
             if (parentDir.exists()) {
               System.setProperty("user.dir", currentDir.getAbsoluteFile().getParent());
               output.writeUTF("Directory changed to " + System.getProperty("user.dir"));
-            }
-            else {
+            } else {
               output.writeUTF("No parent directory exists!");
             }
 
-          } // end if checking ".." 
+          } // end if checking ".."
 
-          else if (command[1] == null) {
-            output.writeUTF("You must specify a path after a cd command.");
-          }
           // when the second param is anything other than ".."
           else {
             File changeDir = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
@@ -138,19 +145,24 @@ public class myftpserver {
             if (changeDir.exists()) {
               System.setProperty("user.dir", changeDir.getAbsoluteFile().getPath());
               output.writeUTF("Directory changed to " + System.getProperty("user.dir"));
-            }
-
-            else {
+            } else {
               output.writeUTF("No such directory exists!");
             }
+
           }
 
           break;
 
         case "mkdir":
-          File newFile = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
-          newFile.mkdir();
-          output.writeUTF("New directory named " + command[1] + " created.");
+          if (command.length == 2) {
+            File newFile = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
+            newFile.mkdir();
+            output.writeUTF("New directory named " + command[1] + " created.");
+          }
+
+          else {
+            output.writeUTF("You must specify a path after a get command.");
+          }
           break;
 
         case "pwd":
