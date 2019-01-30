@@ -34,10 +34,14 @@ public class myftpclient {
       System.out.print("myftp> ");
       String command = scan.nextLine();
       output.writeUTF(command);
+
       if (command.equals("ls")) {
         String listOfFiles[] = (String[]) objInput.readObject();
-        for (int i = 0; i < listOfFiles.length; i++)
-          System.out.println(listOfFiles[i]);
+        for (int i = 0; i < listOfFiles.length; i++) {
+          System.out.printf("%s \t", listOfFiles[i]);
+        }
+        System.out.println();
+               
       }
       
       else if (command.equals("quit")) {

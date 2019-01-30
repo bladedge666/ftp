@@ -106,11 +106,18 @@ public class myftpserver {
           break;
 
         case "cd":
+          
+          if (command.length <= 1) {
+            output.writeUTF("You must specify a path after a cd command.");
+            break;
+          }
+          
+
           if (command[1].equals("..")) {
 
             currentDir = new File(System.getProperty("user.dir"));
             File parentDir = new File(System.getProperty("user.dir", currentDir.getAbsoluteFile().getParent()));
-            System.out.println("Parent dir: ->>>>>" + parentDir);
+            // System.out.println("Parent dir: ->>>>>" + parentDir);
             if (parentDir.exists()) {
               System.setProperty("user.dir", currentDir.getAbsoluteFile().getParent());
               output.writeUTF("Directory changed to " + System.getProperty("user.dir"));
@@ -121,6 +128,9 @@ public class myftpserver {
 
           } // end if checking ".." 
 
+          else if (command[1] == null) {
+            output.writeUTF("You must specify a path after a cd command.");
+          }
           // when the second param is anything other than ".."
           else {
             File changeDir = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
@@ -144,7 +154,7 @@ public class myftpserver {
           break;
 
         case "pwd":
-          output.writeUTF(System.getProperty("user.dir"));
+          output.writeUTF("Remote working directory: " + System.getProperty("user.dir"));
           break;
 
         case "quit":
