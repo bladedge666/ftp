@@ -9,7 +9,6 @@ import java.util.Scanner;;
  * requests from the client.
  */
 public class myftpserver {
-
   private final static String FILE_SEP = System.getProperty("file.separator");
   private final static int BUFFER_SIZE = 1024;
 
@@ -56,30 +55,31 @@ public class myftpserver {
       DataOutputStream output = new DataOutputStream(client.getOutputStream());
       ObjectOutputStream objOutput = new ObjectOutputStream(client.getOutputStream());
       String command[] = null;
-      System.out.println("Waiting for a command...");
+      
       do {
-
-        String response = input.readUTF();
-        command = response.split("\\s+");
-        switch (command[0]) {
+          System.out.println("Waiting for a command...");
+          String response = input.readUTF();
+          command = response.split("\\s+");
+          switch (command[0]) {
 
         case "get":
-
-          File sendFile = new File(command[1]);
-
-          fileInStream = new FileInputStream(sendFile.getAbsolutePath());
-          byte[] getByteArray = new byte[(int) sendFile.length()];
-
-          fileInStream.read(getByteArray, 0, getByteArray.length);
-          outStream.write(getByteArray, 0, getByteArray.length);
-          break;
+        	File sendFile = new File(command[1]);
+        	output.writeUTF(String.valueOf(sendFile.exists()));
+        	if(sendFile.exists()) {	
+        		fileInStream = new FileInputStream(sendFile.getAbsolutePath());
+        		byte[] getByteArray = new byte[(int) sendFile.length()];
+        		fileInStream.read(getByteArray, 0, getByteArray.length);
+        		outStream.write(getByteArray, 0, getByteArray.length);
+        	}
+        	break;
 
         case "put":
-
-          byte[] putByteArray = new byte[BUFFER_SIZE];
-          fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + command[1]);
-          inStream.read(putByteArray, 0, putByteArray.length);
-          fileOutStream.write(putByteArray, 0, putByteArray.length);
+        	if(input.readUTF().equals("true")) {
+        		byte[] putByteArray = new byte[BUFFER_SIZE];
+                fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + command[1]);
+                inStream.read(putByteArray, 0, putByteArray.length);
+                fileOutStream.write(putByteArray, 0, putByteArray.length);
+        	}
           break;
 
         case "delete":
