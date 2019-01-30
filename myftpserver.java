@@ -1,23 +1,50 @@
 import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;;
 
-//server class
+/**
+ * This is the FTP server for the project.
+ * The main method works as the driver and
+ * calls the start method which boots up the 
+ * server and allows it to serve requests from 
+ * the client.
+ */
 public class myftpserver {
 
   private final static String FILE_SEP = System.getProperty("file.separator");
   private final static int BUFFER_SIZE = 1024;
 
+  private ServerSocket ss;
+  private Socket client;
+
+  // might remove this later in favor of command line arguments
+  private static final Scanner scan = new Scanner(System.in);
+
   public static void main(String args[]) throws IOException {
 
-    Scanner scan = new Scanner(System.in);
+    // scan = new Scanner(System.in);
     System.out.print("Enter the port number:");
     int port = Integer.parseInt(scan.nextLine());
 
-    ServerSocket ss = new ServerSocket(port);
+    myftpserver ftpServer = new myftpserver();
+    ftpServer.start(port);
+
+    ftpServer.closeResources();
+   
+  } // end main
+
+    /**
+   * This method is responsible for all the actions performed by the 
+   * server.
+   * @param port
+   * @throws IOException
+   */
+  public void start(int port) throws IOException {
+    ss = new ServerSocket(port);
 
     while (true) {
-      Socket client = ss.accept();
+      client = ss.accept();
       System.out.println("Connection estblished!");
       DataInputStream input = new DataInputStream(new BufferedInputStream(client.getInputStream()));
       FileInputStream fileInStream;
@@ -118,6 +145,15 @@ public class myftpserver {
 
       } while (!command[0].equals("quit"));
 
-    }
+    } // end infinite loop
+
+
   }
+
+
+  public void closeResources() throws IOException {
+    ss.close();
+    scan.close();
+  }
+
 }
