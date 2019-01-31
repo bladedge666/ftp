@@ -9,7 +9,7 @@ import java.util.Scanner;;
  * requests from the client.
  */
 public class myftpserver {
-
+  
   private final static String FILE_SEP = System.getProperty("file.separator");
   private final static int BUFFER_SIZE = 1024;
 
@@ -64,14 +64,23 @@ public class myftpserver {
         switch (command[0]) {
 
         case "get":
+        // check if a filename or path is provided after the get command
           if (command.length == 2) {
             File sendFile = new File(command[1]);
+            System.out.println(sendFile.getAbsoluteFile().exists());
 
-            fileInStream = new FileInputStream(sendFile.getAbsolutePath());
-            byte[] getByteArray = new byte[(int) sendFile.length()];
-
-            fileInStream.read(getByteArray, 0, getByteArray.length);
-            outStream.write(getByteArray, 0, getByteArray.length);
+            // TODO
+            // only get from the server if it exists
+            if (sendFile.getAbsoluteFile().exists()) {
+              fileInStream = new FileInputStream(sendFile.getAbsolutePath());
+              byte[] getByteArray = new byte[(int) sendFile.length()];
+              System.out.println("Transferring file...");
+              fileInStream.read(getByteArray, 0, getByteArray.length);
+              outStream.write(getByteArray, 0, getByteArray.length);
+            }
+            else {
+              output.writeUTF("File " + sendFile.getAbsolutePath() + " not found.");
+            }
           }
 
           // If no file is specified as the argument
@@ -90,18 +99,24 @@ public class myftpserver {
           }
           
           else {
-            output.writeUTF("You must specify a path after a get command.");
+            output.writeUTF("You must specify a path after a put command.");
           }
           break;
 
         case "delete":
-          File del = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
-          System.out.println(System.getProperty("user.dir") + FILE_SEP + command[1]);
-          if (del.exists()) {
-            del.delete();
-            output.writeUTF(command[1] + " successfully deleted.");
-          } else {
-            output.writeUTF("File does not exist!");
+          if (command.length >= 2) {
+            File del = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
+            System.out.println(System.getProperty("user.dir") + FILE_SEP + command[1]);
+            if (del.exists()) {
+              del.delete();
+              output.writeUTF(command[1] + " successfully deleted.");
+            } else {
+              output.writeUTF("File does not exist!");
+            }
+          }
+
+          else {
+            output.writeUTF("You must specify a file after a delete command.");
           }
           break;
 

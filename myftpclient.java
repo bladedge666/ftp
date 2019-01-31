@@ -51,22 +51,35 @@ public class myftpclient {
       }
 
       else if (cmdLength == 2 && command.startsWith("get")) {
-        byte[] getByteArray = new byte[BUFFER_SIZE];
-        String getFile = command.substring(4);
-        System.out.println(getFile);
-        fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + getFile);
-        inStream.read(getByteArray, 0, getByteArray.length);
-        fileOutStream.write(getByteArray, 0, getByteArray.length);
+    	  if(input.readUTF().equals("true")) {
+    		  byte[] getByteArray = new byte[BUFFER_SIZE];
+    		  String getFile = command.substring(4);
+    	      System.out.println(getFile);
+    	      fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + getFile);
+    	      inStream.read(getByteArray, 0, getByteArray.length);
+    	      fileOutStream.write(getByteArray, 0, getByteArray.length);
+    	      System.out.println("File successfully downloaded from server!");
+    	  }
+    	  else {
+    		  System.out.println("File does not exist!");
+    	  }
       }
 
       else if (cmdLength == 2 && command.startsWith("put")) {
         File sendFile = new File(command.substring(4));
-        fileInStream = new FileInputStream(sendFile.getAbsolutePath());
-        // System.out.println(sendFile.length());
-        byte[] putByteArray = new byte[(int) sendFile.length()];
-        fileInStream.read(putByteArray, 0, putByteArray.length);
-        outStream.write(putByteArray, 0, putByteArray.length);
-        // outStream.flush();
+        output.writeUTF(String.valueOf(sendFile.exists()));
+        if(sendFile.exists()) {
+        	fileInStream = new FileInputStream(sendFile.getAbsolutePath());
+            // System.out.println(sendFile.length());
+            byte[] putByteArray = new byte[(int) sendFile.length()];
+            fileInStream.read(putByteArray, 0, putByteArray.length);
+            outStream.write(putByteArray, 0, putByteArray.length);
+            // outStream.flush();
+            System.out.println("File successfully uploaded on server!");
+        }
+        else {
+        	System.out.println("File does not exist!");
+        }
       }
       
       else {
