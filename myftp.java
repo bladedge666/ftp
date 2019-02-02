@@ -6,7 +6,7 @@ import java.util.Scanner;
  * This is the FTP client for the project. On executing this file, you are given
  * a "myftp>" prompt where you can type the available commands.
  */
-public class myftpclient {
+public class myftp {
 
   private final static String FILE_SEP = System.getProperty("file.separator");
   private final static int BUFFER_SIZE = 1024;
