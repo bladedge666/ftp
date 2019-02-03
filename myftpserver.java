@@ -9,7 +9,7 @@ import java.util.Scanner;;
  * requests from the client.
  */
 public class myftpserver {
-  
+
   private final static String FILE_SEP = System.getProperty("file.separator");
   private final static int BUFFER_SIZE = 1024;
 
@@ -51,10 +51,11 @@ public class myftpserver {
       DataInputStream input = new DataInputStream(new BufferedInputStream(client.getInputStream()));
       FileInputStream fileInStream;
       FileOutputStream fileOutStream;
-      OutputStream outStream = client.getOutputStream();
-      InputStream inStream = client.getInputStream();
+      // OutputStream outStream = client.getOutputStream();
+      // InputStream inStream = client.getInputStream();
       DataOutputStream output = new DataOutputStream(client.getOutputStream());
       ObjectOutputStream objOutput = new ObjectOutputStream(client.getOutputStream());
+      ObjectInputStream objInput = new ObjectInputStream(client.getInputStream());
       String command[] = null;
       System.out.println("Waiting for a command...");
       do {
@@ -64,21 +65,26 @@ public class myftpserver {
         switch (command[0]) {
 
         case "get":
-        // check if a filename or path is provided after the get command
+          // check if a filename or path is provided after the get command
           if (command.length == 2) {
             File sendFile = new File(command[1]);
-            System.out.println(sendFile.getAbsoluteFile().exists());
+            // System.out.println(sendFile.getAbsoluteFile());
+            // no idea why sendfile.exists() returns false
+            System.out.println("sendFile exists? " + sendFile.exists());
+            System.out.println("sendAbsoluteFile exists? " + sendFile.getAbsoluteFile().exists());
 
+            output.writeUTF(String.valueOf(sendFile.getAbsoluteFile().exists()));
             // TODO
             // only get from the server if it exists
             if (sendFile.getAbsoluteFile().exists()) {
               fileInStream = new FileInputStream(sendFile.getAbsolutePath());
               byte[] getByteArray = new byte[(int) sendFile.length()];
               System.out.println("Transferring file...");
+              System.out.println(System.getProperty("user.dir"));
+
               fileInStream.read(getByteArray, 0, getByteArray.length);
-              outStream.write(getByteArray, 0, getByteArray.length);
-            }
-            else {
+              output.write(getByteArray, 0, getByteArray.length);
+            } else {
               output.writeUTF("File " + sendFile.getAbsolutePath() + " not found.");
             }
           }
@@ -91,13 +97,18 @@ public class myftpserver {
           break;
 
         case "put":
-          if (command.length == 2) {
+          if (command.length == 2 && input.readUTF().equals("true")) {
+            long size = input.readLong();
+            int bytesRead = 0;
             byte[] putByteArray = new byte[BUFFER_SIZE];
             fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + command[1]);
-            inStream.read(putByteArray, 0, putByteArray.length);
-            fileOutStream.write(putByteArray, 0, putByteArray.length);
+
+            while (size > 0 && (bytesRead = input.read(putByteArray, 0, (int) Math.min(putByteArray.length, size))) > -1) {
+              fileOutStream.write(putByteArray, 0, bytesRead);
+              size -= bytesRead;
+            }
           }
-          
+
           else {
             output.writeUTF("You must specify a path after a put command.");
           }
@@ -123,6 +134,7 @@ public class myftpserver {
         case "ls":
           File curDir = new File(System.getProperty("user.dir"));
           objOutput.writeObject(curDir.list());
+          objOutput.flush();
           break;
 
         // For windows system
