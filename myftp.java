@@ -14,10 +14,8 @@ public class myftp {
 
   public static void main(String[] args) throws IOException, ClassNotFoundException {
 
-    System.out.print("Enter the port number: ");
-    int port = Integer.parseInt(scan.nextLine());
-    System.out.print("Enter the machine name: ");
-    String machineName = scan.nextLine();
+    int port = Integer.parseInt(args[0]);
+    String machineName = args[1];
     Socket server = new Socket(machineName, port);
     DataOutputStream output = new DataOutputStream(server.getOutputStream());
     DataInputStream input = new DataInputStream(new BufferedInputStream(server.getInputStream()));
@@ -26,8 +24,6 @@ public class myftp {
 
     FileOutputStream fileOutStream;
     FileInputStream fileInStream;
-    // OutputStream outStream = server.getOutputStream();
-    // InputStream inStream = server.getInputStream();
 
     boolean quit = false;
     while (!quit) {
@@ -53,15 +49,20 @@ public class myftp {
       }
 
       else if (cmdLength == 2 && command.startsWith("get")) {
-        // System.out.println("Get response from server " + input.readUTF());
         if (input.readUTF().equals("true")) {
-          byte[] getByteArray = new byte[BUFFER_SIZE];
+
+          long size = input.readLong();
+          int bytesRead = 0;
+          byte[] buffer = new byte[BUFFER_SIZE];
+          System.out.println("Size of get file: " + size);
           String getFile = command.substring(4);
           System.out.println(getFile);
           fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + getFile);
-          input.read(getByteArray, 0, getByteArray.length);
-          fileOutStream.write(getByteArray, 0, getByteArray.length);
-          System.out.println("File successfully downloaded from server!");
+          while (size > 0 && (bytesRead = input.read(buffer, 0, (int) Math.min(buffer.length, size))) != -1) {
+            fileOutStream.write(buffer, 0, bytesRead);
+            size -= bytesRead;
+          }
+
         } else {
           System.out.println("File does not exist!");
         }
@@ -74,17 +75,19 @@ public class myftp {
           fileInStream = new FileInputStream(sendFile.getAbsolutePath());
           System.out.println(fileInStream.available());
           byte[] putByteArray = new byte[(int) sendFile.length()];
-  
+
           DataInputStream dis = new DataInputStream(fileInStream);
-          
+
           output.writeLong(putByteArray.length); // send the size of the file
           dis.readFully(putByteArray, 0, putByteArray.length); // readfully is required to read all at once
           output.write(putByteArray, 0, putByteArray.length); //
           output.flush();
           System.out.println("File successfully uploaded on server!");
+          dis.close();
         } else {
           System.out.println("File does not exist!");
         }
+
       }
 
       else {

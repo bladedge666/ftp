@@ -22,8 +22,8 @@ public class myftpserver {
   public static void main(String args[]) throws IOException {
 
     // scan = new Scanner(System.in);
-    System.out.print("Enter the port number:");
-    int port = Integer.parseInt(scan.nextLine());
+    // System.out.print("Enter the port number:");
+    int port = Integer.parseInt(args[0]);
 
     myftpserver ftpServer = new myftpserver();
     ftpServer.start(port);
@@ -42,7 +42,7 @@ public class myftpserver {
     ss = new ServerSocket(port);
 
     File currentDir;
-
+    System.out.println("Waiting for connection...");
     // The infinite loop for the server so that it
     // doesn't close even when the client quits
     while (true) {
@@ -67,23 +67,26 @@ public class myftpserver {
         case "get":
           // check if a filename or path is provided after the get command
           if (command.length == 2) {
-            File sendFile = new File(command[1]);
-            // System.out.println(sendFile.getAbsoluteFile());
-            // no idea why sendfile.exists() returns false
-            System.out.println("sendFile exists? " + sendFile.exists());
-            System.out.println("sendAbsoluteFile exists? " + sendFile.getAbsoluteFile().exists());
+            File sendFile = new File(System.getProperty("user.dir") + FILE_SEP + command[1]);
 
-            output.writeUTF(String.valueOf(sendFile.getAbsoluteFile().exists()));
-            // TODO
-            // only get from the server if it exists
-            if (sendFile.getAbsoluteFile().exists()) {
-              fileInStream = new FileInputStream(sendFile.getAbsolutePath());
-              byte[] getByteArray = new byte[(int) sendFile.length()];
+            output.writeUTF(String.valueOf(sendFile.exists()));
+            System.out.println("FILE---> " + sendFile.getTotalSpace());
+
+            if (sendFile.exists()) {
+              fileInStream = new FileInputStream(sendFile);
+
+              System.out.println(fileInStream.available() + " bytes!");
+              byte[] buffer = new byte[(int) sendFile.length()];
+              System.out.println("Get buffer length: " + buffer.length);
+              DataInputStream dis = new DataInputStream(fileInStream);
+
+              output.writeLong(buffer.length); // send the size of the file
+              dis.readFully(buffer, 0, buffer.length); // readfully is required to read all at once
+              output.write(buffer, 0, buffer.length); //
               System.out.println("Transferring file...");
-              System.out.println(System.getProperty("user.dir"));
-
-              fileInStream.read(getByteArray, 0, getByteArray.length);
-              output.write(getByteArray, 0, getByteArray.length);
+              output.flush();
+              System.out.println("File successfully downloaded!");
+              dis.close();
             } else {
               output.writeUTF("File " + sendFile.getAbsolutePath() + " not found.");
             }
@@ -103,7 +106,8 @@ public class myftpserver {
             byte[] putByteArray = new byte[BUFFER_SIZE];
             fileOutStream = new FileOutputStream(System.getProperty("user.dir") + FILE_SEP + command[1]);
 
-            while (size > 0 && (bytesRead = input.read(putByteArray, 0, (int) Math.min(putByteArray.length, size))) > -1) {
+            while (size > 0
+                && (bytesRead = input.read(putByteArray, 0, (int) Math.min(putByteArray.length, size))) != -1) {
               fileOutStream.write(putByteArray, 0, bytesRead);
               size -= bytesRead;
             }
