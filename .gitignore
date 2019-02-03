@@ -21,4 +21,5 @@
 # your custom files
 makefile
 .vscode
-test.java
+*.pdf
+*.png
